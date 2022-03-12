@@ -7,6 +7,7 @@ const DEFAULT_HEIGHT = 200
 
 const thumbnailQueue = new Queue()
 let currentWorkbookId
+let autoSaveTimer
 
 async function main() {
   const closeBtn = document.getElementById("closeBtn")
@@ -60,7 +61,7 @@ async function renderer({ slot, payload: { arguments: args } }) {
   logseq.provideUI({
     key: "luckysheet",
     slot,
-    template: `<div data-id="${id}" data-on-click="showEditor" class="kef-sheet-bg" style="width: ${width}px; height: ${height}px; background: #fff left top/cover no-repeat url(${thumbnail})">
+    template: `<div data-id="${id}" data-name="${workbookName}" data-on-click="showEditor" class="kef-sheet-bg" style="width: ${width}px; height: ${height}px; background: #fff left top/cover no-repeat url(${thumbnail})">
       <div class="kef-sheet-overlay">
         <div class="kef-sheet-content">
           <svg t="1646980067449" viewBox="0 0 1203 1024" width="50" height="50" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1629"><path d="M100.662959 91.804618v725.347382h795.337041V91.804618h-795.337041z m283.958047 28.72303h227.420946v145.069476H384.621006V120.527648z m0 173.974296h227.420946v145.069477H384.621006V294.501944z m-28.90482 493.745236h-226.330198V643.177703h226.330198v145.069477z m0-173.883402h-226.330198V469.294302h226.330198v145.069476z m0-174.883253h-226.330198V294.411049h226.330198v145.069476z m0-173.792505h-226.330198V120.618543h226.330198v145.069477z m511.469889 522.55916h-56.627997V584.550001h-85.441922v203.697179h-56.627998V643.177703h-85.441922v145.069477h-56.627997V700.805553h-85.441922v87.441627h-56.627998V469.294302h482.565069l0.272687 318.952878z m0-348.766655H639.765129V294.411049h227.420946v145.069476z m0-173.792505H639.765129V120.618543h227.420946v145.069477z" p-id="1630"></path></svg>
@@ -134,6 +135,9 @@ async function loadWorkbook(id) {
         enableAddRow: false,
         enableAddBackTop: false,
         showinfobar: false,
+        showtoolbarConfig: {
+          print: false,
+        },
         row: 30,
         column: 20,
         gridKey: id,
@@ -157,13 +161,21 @@ function refreshRenderers(id, thumbnail) {
   }
 }
 
-async function showEditor({ dataset: { id } }) {
-  logseq.showMainUI()
+async function save() {
+  const data = luckysheet.getAllSheets()
+  await logseq.FileStorage.setItem(currentWorkbookId, JSON.stringify(data))
+}
+
+async function showEditor({ dataset: { id, name } }) {
   currentWorkbookId = id
+  document.getElementById("title").innerHTML = name
+  logseq.showMainUI()
   await loadWorkbook(id)
+  autoSaveTimer = setInterval(save, 30_000)
 }
 
 async function onEditorClose() {
+  clearInterval(autoSaveTimer)
   const data = luckysheet.getAllSheets()
   await logseq.FileStorage.setItem(currentWorkbookId, JSON.stringify(data))
   const thumbnail = luckysheet.getScreenshot({

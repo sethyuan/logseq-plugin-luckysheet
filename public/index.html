@@ -18,18 +18,27 @@
 		*::before,
 		*::after {
 			box-sizing: border-box;
-			margin: 0;
 		}
 
 		html,
-		body {
+		body,
+		.title,
+		#title,
+		#sheet,
+		#closeBtn {
+			margin: 0;
+		}
+
+		html {
 			height: 100%;
+			font-family: Arial, Helvetica, "MiSans", "PingFang SC", "Microsoft YaHei", sans-serif;
 		}
 
 		body {
+			height: 100%;
 			background-color: #fff;
 			overflow: hidden;
-			padding: 45px 5px 5px;
+			padding-top: 40px;
 			display: flex;
 			flex-flow: column nowrap;
 		}
@@ -39,6 +48,16 @@
 			position: relative;
 			height: 40px;
 			line-height: 40px;
+		}
+
+		#title {
+			height: 40px;
+			line-height: 40px;
+			font-size: 26px;
+			font-weight: 400;
+			color: #333;
+			text-align: center;
+			cursor: default;
 		}
 
 		#sheet {
@@ -56,6 +75,7 @@
 
 <body>
 	<div class="toolbar">
+		<h1 id="title"></h1>
 		<svg id="closeBtn" t="1646904869063" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
 			p-id="1360" width="22" height="22">
 			<path
