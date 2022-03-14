@@ -195,8 +195,7 @@ async function showEditor({ dataset: { id, name } }) {
 
 async function onEditorClose() {
   clearInterval(autoSaveTimer)
-  const data = luckysheet.getAllSheets()
-  await logseq.FileStorage.setItem(currentWorkbookId, JSON.stringify(data))
+  await save()
   const thumbnail = luckysheet.getScreenshot({
     range: { row: [0, 10], column: [0, 10] },
   })
