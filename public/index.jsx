@@ -187,7 +187,7 @@ async function save() {
 
 async function showEditor({ dataset: { id, name } }) {
   currentWorkbookId = id
-  document.getElementById("title").innerHTML = name
+  document.getElementById("title").innerText = name
   logseq.showMainUI()
   await loadWorkbook(id)
   autoSaveTimer = setInterval(save, 30_000)
