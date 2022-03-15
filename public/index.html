@@ -38,22 +38,26 @@
 			height: 100%;
 			background-color: #fff;
 			overflow: hidden;
-			padding-top: 40px;
-			display: flex;
-			flex-flow: column nowrap;
+			position: relative;
+			padding-top: 50px;
 		}
 
-		.toolbar {
-			flex: 0 0 auto;
-			position: relative;
+		#toolbar {
+			position: absolute;
+			top: 10px;
+			left: 0;
+			right: 0;
 			height: 40px;
-			line-height: 40px;
+			display: flex;
+			flex-direction: row;
+			align-items: center;
 		}
 
 		#title {
+			flex: 1 1 auto;
 			height: 40px;
 			line-height: 40px;
-			font-size: 26px;
+			font-size: 20px;
 			font-weight: 400;
 			color: #333;
 			text-align: center;
@@ -61,7 +65,7 @@
 		}
 
 		#sheet {
-			flex: 1;
+			height: 100%;
 		}
 
 		#closeBtn {
@@ -74,7 +78,7 @@
 </head>
 
 <body>
-	<div class="toolbar">
+	<div id="toolbar">
 		<h1 id="title"></h1>
 		<svg id="closeBtn" t="1646904869063" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
 			p-id="1360" width="22" height="22">

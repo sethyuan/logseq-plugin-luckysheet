@@ -18,6 +18,8 @@ async function main() {
       display: flex;
       cursor: pointer;
       border: 1px solid var(--ls-border-color);
+      flex: 0 1 ${DEFAULT_WIDTH}px;
+      height: ${DEFAULT_HEIGHT}px;
     }
     .kef-sheet-overlay {
       flex: 1 1 auto;
@@ -67,16 +69,18 @@ async function renderer({ slot, payload: { arguments: args, uuid } }) {
   if (type !== ":luckysheet") return
   const workbookName = args[1].trim()
   if (!workbookName) return
-  const width = parseInt(args[2]) || DEFAULT_WIDTH
-  const height = parseInt(args[3]) || DEFAULT_HEIGHT
   const id = `workbook-${await hash(workbookName)}`
 
   const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
   const thumbnail = localStorage.getItem(`kef-${id}`) ?? ""
+  logseq.provideStyle({
+    key: "luckysheet",
+    style: `#${slot} { width: 100%; }`,
+  })
   logseq.provideUI({
     key: "luckysheet",
     slot,
-    template: `<div data-id="${id}" data-name="${workbookName}" data-on-click="showEditor" class="kef-sheet-bg" style="width: ${width}px; height: ${height}px; background: #fff left top/cover no-repeat url(${thumbnail})">
+    template: `<div data-id="${id}" data-name="${workbookName}" data-on-click="showEditor" class="kef-sheet-bg" style="background: #fff left top/cover no-repeat url(${thumbnail})">
       <div class="kef-sheet-overlay">
         <div class="kef-sheet-content">
           <svg t="1646980067449" viewBox="0 0 1203 1024" width="50" height="50" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1629"><path d="M100.662959 91.804618v725.347382h795.337041V91.804618h-795.337041z m283.958047 28.72303h227.420946v145.069476H384.621006V120.527648z m0 173.974296h227.420946v145.069477H384.621006V294.501944z m-28.90482 493.745236h-226.330198V643.177703h226.330198v145.069477z m0-173.883402h-226.330198V469.294302h226.330198v145.069476z m0-174.883253h-226.330198V294.411049h226.330198v145.069476z m0-173.792505h-226.330198V120.618543h226.330198v145.069477z m511.469889 522.55916h-56.627997V584.550001h-85.441922v203.697179h-56.627998V643.177703h-85.441922v145.069477h-56.627997V700.805553h-85.441922v87.441627h-56.627998V469.294302h482.565069l0.272687 318.952878z m0-348.766655H639.765129V294.411049h227.420946v145.069476z m0-173.792505H639.765129V120.618543h227.420946v145.069477z" p-id="1630"></path></svg>
@@ -88,6 +92,7 @@ async function renderer({ slot, payload: { arguments: args, uuid } }) {
       </div>
     </div>`,
     reset: true,
+    style: { flex: 1 },
   })
   if (!thumbnail) {
     generateThumbnail(id)
@@ -191,6 +196,7 @@ async function showEditor({ dataset: { id, name } }) {
   logseq.showMainUI()
   await loadWorkbook(id)
   autoSaveTimer = setInterval(save, 30_000)
+  document.querySelector(".luckysheet-cell-input.editable")?.focus()
 }
 
 async function onEditorClose() {
