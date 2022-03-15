@@ -245,14 +245,12 @@ async function promptToDelete({ dataset: { id, name, uuid } }) {
 }
 
 async function generateAndOverrideParent() {
-  const markdown = generateMarkdown()
-
   const block = await logseq.Editor.getBlock(currentUuid)
   if (block.parent != null && block.parent.id !== block.page.id) {
     const parent = await logseq.Editor.getBlock(block.parent.id)
+    const markdown = generateMarkdown()
     await logseq.Editor.updateBlock(parent.uuid, markdown)
   }
-
   await saveAndClose()
 }
 
