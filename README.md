@@ -8,9 +8,9 @@ Embed Luckysheet (spreadsheet) into Logseq.
 
 ![demo](demo.gif)
 
-维护一个 markdown 表格。
+维护一个 markdown 表格是非常容易的一件事情，只要在你想要生成 markdown 表格的块的子级创建一个 Luckysheet 电子表格，编辑好后点击右上角的生成按钮即可。
 
-Maintain a markdown table.
+Maintaining a markdown table is as easy as creating a Luckysheet spreadsheet at the sub-level of the block you want to generate the markdown table in, edit it and click the Generate button of the top right corner.
 
 ![markdown](markdown.gif)
 
