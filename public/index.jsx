@@ -84,10 +84,7 @@ async function renderer({ slot, payload: { arguments: args, uuid } }) {
 
   const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
   const thumbnail = localStorage.getItem(`kef-${id}`) ?? ""
-  logseq.provideStyle({
-    key: "luckysheet",
-    style: `#${slot} { width: 100%; }`,
-  })
+  logseq.provideStyle(`#${slot} { width: 100%; }`)
   logseq.provideUI({
     key: "luckysheet",
     slot,
@@ -197,8 +194,12 @@ function refreshRenderers(id, thumbnail) {
 }
 
 async function save() {
-  const data = luckysheet.getAllSheets()
-  await logseq.FileStorage.setItem(currentWorkbookId, JSON.stringify(data))
+  const sheets = luckysheet.getAllSheets()
+  // Do not save selections.
+  for (const sheet of sheets) {
+    sheet.luckysheet_selection_range = []
+  }
+  await logseq.FileStorage.setItem(currentWorkbookId, JSON.stringify(sheets))
 }
 
 async function openEditor({ dataset: { id, name, uuid } }) {
