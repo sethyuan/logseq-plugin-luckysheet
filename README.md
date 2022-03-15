@@ -8,6 +8,12 @@ Embed Luckysheet (spreadsheet) into Logseq.
 
 ![demo](demo.gif)
 
+维护一个 markdown 表格。
+
+Maintain a markdown table.
+
+![markdown](markdown.gif)
+
 ## 使用示例 (Examples)
 
 ```

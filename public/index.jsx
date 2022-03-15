@@ -7,11 +7,22 @@ const DEFAULT_HEIGHT = 200
 
 const thumbnailQueue = new Queue()
 let currentWorkbookId
+let currentUuid
 let autoSaveTimer
 
 async function main() {
+  const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
+
   const closeBtn = document.getElementById("closeBtn")
-  closeBtn.addEventListener("click", onEditorClose)
+  closeBtn.title = lang === "zh-CN" ? "保存并关闭" : "Save and close"
+  closeBtn.addEventListener("click", saveAndClose)
+
+  const syncBtn = document.getElementById("syncBtn")
+  syncBtn.title =
+    lang === "zh-CN"
+      ? "生成Markdown并覆写至父级块"
+      : "Generate Markdown and override the parent block"
+  syncBtn.addEventListener("click", generateAndOverrideParent)
 
   logseq.provideStyle(`
     .kef-sheet-bg {
@@ -80,7 +91,7 @@ async function renderer({ slot, payload: { arguments: args, uuid } }) {
   logseq.provideUI({
     key: "luckysheet",
     slot,
-    template: `<div data-id="${id}" data-name="${workbookName}" data-on-click="showEditor" class="kef-sheet-bg" style="background: #fff left top/cover no-repeat url(${thumbnail})">
+    template: `<div data-id="${id}" data-name="${workbookName}" data-uuid="${uuid}" data-on-click="openEditor" class="kef-sheet-bg" style="background: #fff left top/cover no-repeat url(${thumbnail})">
       <div class="kef-sheet-overlay">
         <div class="kef-sheet-content">
           <svg t="1646980067449" viewBox="0 0 1203 1024" width="50" height="50" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1629"><path d="M100.662959 91.804618v725.347382h795.337041V91.804618h-795.337041z m283.958047 28.72303h227.420946v145.069476H384.621006V120.527648z m0 173.974296h227.420946v145.069477H384.621006V294.501944z m-28.90482 493.745236h-226.330198V643.177703h226.330198v145.069477z m0-173.883402h-226.330198V469.294302h226.330198v145.069476z m0-174.883253h-226.330198V294.411049h226.330198v145.069476z m0-173.792505h-226.330198V120.618543h226.330198v145.069477z m511.469889 522.55916h-56.627997V584.550001h-85.441922v203.697179h-56.627998V643.177703h-85.441922v145.069477h-56.627997V700.805553h-85.441922v87.441627h-56.627998V469.294302h482.565069l0.272687 318.952878z m0-348.766655H639.765129V294.411049h227.420946v145.069476z m0-173.792505H639.765129V120.618543h227.420946v145.069477z" p-id="1630"></path></svg>
@@ -190,8 +201,9 @@ async function save() {
   await logseq.FileStorage.setItem(currentWorkbookId, JSON.stringify(data))
 }
 
-async function showEditor({ dataset: { id, name } }) {
+async function openEditor({ dataset: { id, name, uuid } }) {
   currentWorkbookId = id
+  currentUuid = uuid
   document.getElementById("title").innerText = name
   logseq.showMainUI()
   await loadWorkbook(id)
@@ -199,7 +211,7 @@ async function showEditor({ dataset: { id, name } }) {
   document.querySelector(".luckysheet-cell-input.editable")?.focus()
 }
 
-async function onEditorClose() {
+async function saveAndClose() {
   clearInterval(autoSaveTimer)
   await save()
   const thumbnail = luckysheet.getScreenshot({
@@ -232,5 +244,64 @@ async function promptToDelete({ dataset: { id, name, uuid } }) {
   )
 }
 
-const model = { showEditor, promptToDelete }
+async function generateAndOverrideParent() {
+  const markdown = generateMarkdown()
+
+  const block = await logseq.Editor.getBlock(currentUuid)
+  if (block.parent != null && block.parent.id !== block.page.id) {
+    const parent = await logseq.Editor.getBlock(block.parent.id)
+    await logseq.Editor.updateBlock(parent.uuid, markdown)
+  }
+
+  await saveAndClose()
+}
+
+function generateMarkdown() {
+  const data = luckysheet.getSheetData()
+
+  let colNum = 0
+  for (let i = 0; i < data[0].length; i++) {
+    if (data[0][i]?.m == null && data[0][i]?.ct?.t !== "inlineStr") {
+      colNum = i
+      break
+    }
+  }
+
+  const rows = []
+  for (let i = 0; i < data.length; i++) {
+    const row = new Array(colNum)
+
+    for (let j = 0; j < colNum; j++) {
+      if (data[i][j]?.m != null || data[i][j]?.ct?.t === "inlineStr") {
+        row[j] =
+          data[i][j]?.m ?? data[i][j]?.ct.s[0].v.replaceAll("\r\n", " <br />")
+      }
+    }
+
+    if (row.every((cell) => !cell)) break
+
+    rows.push(`| ${row.join(" | ")} |`)
+
+    if (i === 0) {
+      rows.push(
+        `| ${row
+          .map((_, j) => {
+            switch (data[i][j].ht) {
+              case "0":
+                return ":---:"
+              case "2":
+                return "---:"
+              default:
+                return "---"
+            }
+          })
+          .join(" | ")} |`,
+      )
+    }
+  }
+
+  return rows.join("\n")
+}
+
+const model = { openEditor, promptToDelete }
 logseq.ready(model, main).catch(console.error)
