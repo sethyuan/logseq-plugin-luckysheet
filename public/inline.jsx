@@ -15,7 +15,7 @@ async function main() {
   syncBtn.title =
     lang === "zh-CN"
       ? "生成Markdown并覆写至父级块"
-      : "Generate Markdown and override the parent block"
+      : "Generate Markdown and override parent block"
   syncBtn.addEventListener("click", (e) => {
     generateAndOverrideParent()
   })
@@ -31,7 +31,6 @@ async function main() {
       e.preventDefault()
     }
   })
-
   const fullscreenBtn = document.getElementById("fullscreenBtn")
   fullscreenBtn.title = lang === "zh-CN" ? "全屏编辑" : "FullScreen Edit"
   fullscreenBtn.addEventListener("click", async (e) => {

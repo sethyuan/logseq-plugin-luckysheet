@@ -56,11 +56,6 @@ inherits@2.0.3:
   resolved "https://registry.npmmirror.com/inherits/-/inherits-2.0.3.tgz#633c2c83e3da42a502f52466022480f4208261de"
   integrity sha512-x00IRNXNy63jwGkJmzPigoySHbaqpNuzKbBOmzK+g2OdZpQ9w+sxCN+VSB3ja7IAge2OP2qpfxTjeNcyjmW1uw==
 
-jsutils@^1.10.1:
-  version "1.10.1"
-  resolved "https://registry.npmmirror.com/JSUtils/-/JSUtils-1.10.1.tgz#7527d42823748a4e180c43da6a88b0d054af2266"
-  integrity sha512-OkS8Is0fPyHRYqZreJnXIEnY+kMfAzLFQyl5+zKLwFB1rDyOjmaQSyLAp3mbG/WR5lg6Khc7GXMPyZ/flcL0hQ==
-
 lodash-es@4.17.21:
   version "4.17.21"
   resolved "https://registry.npmmirror.com/lodash-es/-/lodash-es-4.17.21.tgz#43e626c46e6591b7750beb2b50117390c609e3ee"

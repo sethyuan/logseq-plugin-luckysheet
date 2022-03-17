@@ -20,23 +20,6 @@ Maintaining a markdown table is as easy as creating a Luckysheet spreadsheet at 
 {{renderer :luckysheet, workbook name}}
 ```
 
-## 用户配置 (User configs)
-
-```json
-{
-  "disabled": false,
-  "renderer": "thumbnail"
-}
-```
-
-在 Logseq 的插件页面打开插件的配置后，有以下几项配置可供使用，请参照上方代码块进行设置（各项的默认值以体现在代码块中）：
-
-- `renderer`: 选择嵌入在页面部分的渲染方式。只渲染缩略图的话设置 `thumbnail`，速度更快，更节省资源；要渲染可交互的内嵌表格的话设置 `inline`，但当同一屏存在的表格过多时会更慢且消耗资源更多。
-
-There are a couple of user settings available when you access the plugin settings from Logseq's plugins page. Please refer to the source block above (Default values are given in the source block).
-
-- `renderer`: Choose how the embedded part is rendered. `thumbnail` will render a thumbnail only, it's fast and doesn't consume too much resources; `inline` will render a functional inline spreadsheet, but it's slower and consumes more resources when there are too many spreadsheets at the same time.
-
 ## 免责声明 (Disclaimer)
 
 本插件中使用的表格是第三方的开源软件 [Luckysheet](https://github.com/mengshukeji/Luckysheet)，非插件作者维护。插件作者不对由此带来的可能数据丢失或错误负任何直接或间接责任。
