@@ -31,25 +31,12 @@ async function main() {
     generateAndOverrideParent()
   })
 
-  document.addEventListener("keydown", (e) => {
-    if (
-      e.key === "Escape" &&
-      !e.altKey &&
-      !e.ctrlKey &&
-      !e.metaKey &&
-      !e.shiftKey
-    ) {
-      e.preventDefault()
-    }
-  })
   const fullscreenBtn = document.getElementById("fullscreenBtn")
   fullscreenBtn.title = lang === "zh-CN" ? "全屏编辑" : "FullScreen Edit"
   fullscreenBtn.addEventListener("click", async (e) => {
-    if (!parent.document.fullscreenElement) {
-      await frameElement.requestFullscreen()
+    frameElement.classList.toggle("kef-sheet-fullscreen")
+    if (frameElement.classList.contains("kef-sheet-fullscreen")) {
       document.querySelector(".luckysheet-cell-input.editable")?.focus()
-    } else {
-      parent.document.exitFullscreen()
     }
   })
 

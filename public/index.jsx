@@ -14,6 +14,15 @@ async function main() {
       flex: 0 1 ${INLINE_WIDTH}px;
       height: ${INLINE_HEIGHT}px;
     }
+    .kef-sheet-fullscreen {
+      margin: 0;
+      position: fixed;
+      top: 48px;
+      left: 0;
+      width: 100%;
+      height: calc(100% - 48px);
+      z-index: var(--ls-z-index-level-3, 999);
+    }
   `)
   logseq.App.onMacroRendererSlotted(renderer)
   logseq.Editor.registerSlashCommand("Luckysheet", insertRenderer)
