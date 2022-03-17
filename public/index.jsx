@@ -1,7 +1,7 @@
 import "@logseq/libs"
 import { hash } from "./utils"
 
-const INLINE_WIDTH = 600
+const INLINE_WIDTH = 660
 const INLINE_HEIGHT = 400
 
 async function main() {

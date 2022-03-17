@@ -1,4 +1,7 @@
-const { id, name, uuid, frame } = frameElement.dataset
+import { hash } from "./utils"
+
+const idRef = { current: frameElement.dataset.id }
+const { name, uuid, frame } = frameElement.dataset
 const logseq = parent.document.getElementById(frame).contentWindow.logseq
 
 const SAVE_DELAY = 10_000 // 10s
@@ -9,7 +12,15 @@ let workbookReady = false
 async function main() {
   const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
 
-  document.getElementById("title").innerText = name
+  const title = document.getElementById("title")
+  title.innerText = name
+  title.title = name
+  title.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      renameWorkbook(title.innerText)
+    }
+  })
 
   const syncBtn = document.getElementById("syncBtn")
   syncBtn.title =
@@ -61,8 +72,8 @@ async function main() {
     }
   })
 
-  const data = (await logseq.FileStorage.hasItem(id))
-    ? JSON.parse(await logseq.FileStorage.getItem(id))
+  const data = (await logseq.FileStorage.hasItem(idRef.current))
+    ? JSON.parse(await logseq.FileStorage.getItem(idRef.current))
     : [
         {
           name: "Sheet1",
@@ -87,7 +98,7 @@ async function main() {
     },
     row: 30,
     column: 20,
-    gridKey: id,
+    gridKey: idRef.current,
     data,
     hook: {
       workbookCreateAfter() {
@@ -107,7 +118,7 @@ async function save() {
   for (const sheet of sheets) {
     sheet.luckysheet_selection_range = []
   }
-  await logseq.FileStorage.setItem(id, JSON.stringify(sheets))
+  await logseq.FileStorage.setItem(idRef.current, JSON.stringify(sheets))
 }
 
 async function generateAndOverrideParent() {
@@ -175,7 +186,7 @@ async function promptToDelete() {
   )
   if (!ok) return
 
-  await logseq.FileStorage.removeItem(id)
+  await logseq.FileStorage.removeItem(idRef.current)
   const block = await logseq.Editor.getBlock(uuid)
   await logseq.Editor.updateBlock(
     uuid,
@@ -184,6 +195,23 @@ async function promptToDelete() {
       "",
     ),
   )
+}
+
+async function renameWorkbook(newName) {
+  await logseq.FileStorage.removeItem(idRef.current)
+
+  idRef.current = `workbook-${await hash(newName)}`
+
+  const block = await logseq.Editor.getBlock(uuid)
+  await logseq.Editor.updateBlock(
+    uuid,
+    block.content.replace(
+      new RegExp(`{{renderer :luckysheet,\\s*${name}\\s*}}`, "i"),
+      `{{renderer :luckysheet, ${newName}}}`,
+    ),
+  )
+
+  // A save will be triggered by page exit.
 }
 
 main()
