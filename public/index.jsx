@@ -4,10 +4,19 @@ import { hash } from "./utils"
 const INLINE_WIDTH = 660
 const INLINE_HEIGHT = 400
 
+const mainContentContainer = parent.document.getElementById(
+  "main-content-container",
+)
+let lastScrollTop = 0
+
 async function main() {
   const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
 
   window.logseq = logseq
+  window.justFocused = false
+  mainContentContainer.addEventListener("scroll", scrollHandler, {
+    passive: true,
+  })
 
   logseq.provideStyle(`
     .kef-sheet-iframe {
@@ -26,6 +35,12 @@ async function main() {
   `)
   logseq.App.onMacroRendererSlotted(renderer)
   logseq.Editor.registerSlashCommand("Luckysheet", insertRenderer)
+
+  logseq.beforeunload(() => {
+    mainContentContainer.removeEventListener("scroll", scrollHandler, {
+      passive: true,
+    })
+  })
 
   console.log("#luckysheet loaded")
 }
@@ -64,6 +79,17 @@ function getPluginDir() {
   ).src
   const index = pluginSrc.lastIndexOf("/")
   return pluginSrc.substring(0, index)
+}
+
+// HACK workaround Luckysheet issue that on first focus it scrolls to
+// the top of the page.
+function scrollHandler(e) {
+  if (window.justFocused) {
+    window.justFocused = false
+    mainContentContainer.scrollTop = lastScrollTop
+  } else {
+    lastScrollTop = mainContentContainer.scrollTop
+  }
 }
 
 logseq.ready(main).catch(console.error)

@@ -2,7 +2,8 @@ import { hash } from "./utils"
 
 const idRef = { current: frameElement.dataset.id }
 const { name, uuid, frame } = frameElement.dataset
-const logseq = parent.document.getElementById(frame).contentWindow.logseq
+const pluginWindow = parent.document.getElementById(frame).contentWindow
+const logseq = pluginWindow.logseq
 
 const SAVE_DELAY = 10_000 // 10s
 
@@ -90,6 +91,15 @@ async function main() {
     hook: {
       workbookCreateAfter() {
         workbookReady = true
+
+        // HACK workaround Luckysheet issue that on first focus it scrolls to
+        // the top of the page.
+        const editable = document.querySelector(
+          ".luckysheet-cell-input.editable",
+        )
+        editable.addEventListener("focus", (e) => {
+          pluginWindow.justFocused = true
+        })
       },
       updated(op) {
         clearTimeout(saveTimer)
