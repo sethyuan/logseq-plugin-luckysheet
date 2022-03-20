@@ -4,13 +4,14 @@ import { hash } from "./utils"
 const INLINE_WIDTH = 660
 const INLINE_HEIGHT = 400
 
-const mainContentContainer = parent.document.getElementById(
-  "main-content-container",
-)
+let mainContentContainer
 let lastScrollTop = 0
 
 async function main() {
   const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
+  mainContentContainer = parent.document.getElementById(
+    "main-content-container",
+  )
 
   window.logseq = logseq
   window.justFocused = false
