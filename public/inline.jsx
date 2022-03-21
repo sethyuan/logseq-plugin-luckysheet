@@ -183,7 +183,9 @@ async function promptToDelete() {
   )
   if (!ok) return
 
+  clearTimeout(saveTimer)
   await logseq.FileStorage.removeItem(idRef.current)
+  workbookReady = false
   const block = await logseq.Editor.getBlock(uuid)
   await logseq.Editor.updateBlock(
     uuid,
