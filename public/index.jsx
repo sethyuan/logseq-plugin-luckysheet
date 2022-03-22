@@ -27,10 +27,10 @@ async function main() {
     .kef-sheet-fullscreen {
       margin: 0;
       position: fixed;
-      top: 48px;
+      top: 45px;
       left: 0;
       width: 100%;
-      height: calc(100% - 48px);
+      height: calc(100% - 45px);
       z-index: var(--ls-z-index-level-3, 999);
     }
   `)

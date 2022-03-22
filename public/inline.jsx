@@ -130,22 +130,45 @@ async function generateAndOverrideParent() {
 function generateMarkdown() {
   const data = luckysheet.getSheetData()
 
-  let colNum = 0
-  for (let i = 0; i < data[0].length; i++) {
-    if (data[0][i]?.m == null && data[0][i]?.ct?.t !== "inlineStr") {
-      colNum = i
+  let rowStart = 0
+  let colStart = 0
+  let colEnd = 0
+  loop: for (let i = 0; i < data.length; i++) {
+    for (let j = 0; j < data[i].length; j++) {
+      if (data[i][j]?.m != null || data[i][j]?.ct?.t === "inlineStr") {
+        rowStart = i
+        colStart = j
+        break loop
+      }
+    }
+  }
+  for (let i = colStart + 1; i < data[rowStart].length; i++) {
+    if (
+      data[rowStart][i]?.m == null &&
+      data[rowStart][i]?.ct?.t !== "inlineStr"
+    ) {
+      colEnd = i
       break
     }
   }
 
   const rows = []
-  for (let i = 0; i < data.length; i++) {
-    const row = new Array(colNum)
+  for (let i = rowStart; i < data.length; i++) {
+    const row = new Array(colEnd - colStart)
 
-    for (let j = 0; j < colNum; j++) {
+    for (let j = colStart; j < colEnd; j++) {
       if (data[i][j]?.m != null || data[i][j]?.ct?.t === "inlineStr") {
-        row[j] =
-          data[i][j]?.m ?? data[i][j]?.ct.s[0].v.replaceAll("\r\n", " <br />")
+        row[j - colStart] =
+          data[i][j]?.m ??
+          data[i][j]?.ct.s
+            .map(
+              ({ bl, it, cl, v }) =>
+                `${bl ? "**" : ""}${cl ? "~~" : ""}${it ? "_" : ""}${v}${
+                  it ? "_" : ""
+                }${cl ? "~~" : ""}${bl ? "**" : ""}`,
+            )
+            .join("")
+            .replaceAll("\r\n", " <br />")
       }
     }
 
