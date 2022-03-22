@@ -168,6 +168,7 @@ function generateMarkdown() {
                 }${cl ? "~~" : ""}${bl ? "**" : ""}`,
             )
             .join("")
+            .trim()
             .replaceAll("\r\n", " <br />")
       }
     }
