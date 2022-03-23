@@ -100,6 +100,8 @@ async function main() {
         editable.addEventListener("focus", (e) => {
           pluginWindow.justFocused = true
         })
+
+        luckysheet.setRangeShow("A1", { show: false })
       },
       updated(op) {
         clearTimeout(saveTimer)
@@ -111,9 +113,27 @@ async function main() {
 
 async function save() {
   const sheets = luckysheet.getAllSheets()
-  // Do not save selections.
   for (const sheet of sheets) {
+    // Do not save selections.
     sheet.luckysheet_selection_range = []
+
+    // Process charts
+    if (sheet.chart) {
+      for (let i = 0; i < sheet.chart.length; i++) {
+        const chart = sheet.chart[i]
+        const div = document.getElementById(`${chart.chart_id}_c`)
+        sheet.chart[i] = {
+          ...chart,
+          ...(div.style && {
+            left: parseInt(div.style.left),
+            top: parseInt(div.style.top),
+            width: parseInt(div.style.width),
+            height: parseInt(div.style.height),
+          }),
+          chartOptions: { ...chartmix.default.getChartJson(chart.chart_id) },
+        }
+      }
+    }
   }
   await logseq.FileStorage.setItem(idRef.current, JSON.stringify(sheets))
 }
