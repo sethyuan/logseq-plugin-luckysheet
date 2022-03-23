@@ -119,18 +119,16 @@ async function save() {
 
     // Process charts
     if (sheet.chart) {
-      for (let i = 0; i < sheet.chart.length; i++) {
-        const chart = sheet.chart[i]
+      for (const chart of sheet.chart) {
         const div = document.getElementById(`${chart.chart_id}_c`)
-        sheet.chart[i] = {
-          ...chart,
-          ...(div.style && {
-            left: parseInt(div.style.left),
-            top: parseInt(div.style.top),
-            width: parseInt(div.style.width),
-            height: parseInt(div.style.height),
-          }),
-          chartOptions: { ...chartmix.default.getChartJson(chart.chart_id) },
+        if (div.style) {
+          chart.left = parseInt(div.style.left)
+          chart.top = parseInt(div.style.top)
+          chart.width = parseInt(div.style.width)
+          chart.height = parseInt(div.style.height)
+        }
+        chart.chartOptions = {
+          ...chartmix.default.getChartJson(chart.chart_id),
         }
       }
     }
