@@ -23,6 +23,12 @@ async function main() {
     }
   })
 
+  const copyBtn = document.getElementById("copyBtn")
+  copyBtn.title = lang === "zh-CN" ? "拷贝选区为TSV" : "Copy selection as TSV"
+  copyBtn.addEventListener("click", (e) => {
+    copyAsTSV()
+  })
+
   const syncBtn = document.getElementById("syncBtn")
   syncBtn.title =
     lang === "zh-CN"
@@ -141,12 +147,28 @@ async function save() {
   await logseq.FileStorage.setItem(idRef.current, JSON.stringify(sheets))
 }
 
+async function copyAsTSV() {
+  const data = luckysheet.getRangeArray("twoDimensional")
+  const text = data.map((row) => row.join("\t")).join("\n")
+  await navigator.clipboard.writeText(text)
+
+  const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
+  logseq.App.showMsg(lang === "zh-CN" ? "选区已复制" : "Selection copied")
+}
+
 async function generateAndOverrideParent() {
   const block = await logseq.Editor.getBlock(uuid)
   if (block.parent != null && block.parent.id !== block.page.id) {
     const parent = await logseq.Editor.getBlock(block.parent.id)
     const markdown = generateMarkdown()
     await logseq.Editor.updateBlock(parent.uuid, markdown)
+  } else {
+    const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
+    logseq.App.showMsg(
+      lang === "zh-CN"
+        ? "表格需有一个父级块"
+        : "Luckysheet needs to have a parent block",
+    )
   }
 }
 
