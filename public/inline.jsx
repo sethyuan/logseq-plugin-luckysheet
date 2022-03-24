@@ -37,7 +37,12 @@ async function main() {
   fullscreenBtn.addEventListener("click", async (e) => {
     frameElement.classList.toggle("kef-sheet-fullscreen")
     if (frameElement.classList.contains("kef-sheet-fullscreen")) {
+      if (parent.document.documentElement.classList.contains("is-mac")) {
+        document.documentElement.classList.add("fullscreen-mac")
+      }
       document.querySelector(".luckysheet-cell-input.editable")?.focus()
+    } else {
+      document.documentElement.classList.remove("fullscreen-mac")
     }
   })
 

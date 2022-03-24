@@ -23,14 +23,15 @@ async function main() {
     .kef-sheet-iframe {
       flex: 0 1 ${INLINE_WIDTH}px;
       height: ${INLINE_HEIGHT}px;
+      margin: 0;
     }
     .kef-sheet-fullscreen {
       margin: 0;
       position: fixed;
-      top: 45px;
+      top: 0;
       left: 0;
       width: 100%;
-      height: calc(100% - 45px);
+      height: 100%;
       z-index: var(--ls-z-index-level-3, 999);
     }
   `)
