@@ -71,19 +71,21 @@ async function main() {
     }
   })
 
-  const data = (await logseq.FileStorage.hasItem(idRef.current))
+  const file = (await logseq.FileStorage.hasItem(idRef.current))
     ? JSON.parse(await logseq.FileStorage.getItem(idRef.current))
-    : [
-        {
-          name: "Sheet1",
-          color: "",
-          status: "1",
-          order: "0",
-          data: [],
-          config: {},
-          index: 0,
-        },
-      ]
+    : {
+        data: [
+          {
+            name: "Sheet1",
+            color: "",
+            status: "1",
+            order: "0",
+            data: [],
+            config: {},
+            index: 0,
+          },
+        ],
+      }
 
   luckysheet.create({
     container: "sheet",
@@ -98,7 +100,8 @@ async function main() {
     row: 30,
     column: 20,
     gridKey: idRef.current,
-    data,
+    // compat with old files.
+    data: Array.isArray(file) ? file : file.data,
     hook: {
       workbookCreateAfter() {
         workbookReady = true
@@ -144,7 +147,11 @@ async function save() {
       }
     }
   }
-  await logseq.FileStorage.setItem(idRef.current, JSON.stringify(sheets))
+  const file = {
+    name,
+    data: sheets,
+  }
+  await logseq.FileStorage.setItem(idRef.current, JSON.stringify(file))
 }
 
 async function copyAsTSV() {
