@@ -16,11 +16,16 @@ async function main() {
   const title = document.getElementById("title")
   title.innerText = name
   title.title = name
-  title.addEventListener("keydown", (e) => {
+  title.addEventListener("keydown", async (e) => {
     if (e.key === "Enter") {
       e.preventDefault()
-      renameWorkbook(title.innerText)
+      if (!(await renameWorkbook(title.innerText))) {
+        title.innerText = name
+      }
     }
+  })
+  title.addEventListener("blur", (e) => {
+    title.innerText = name
   })
 
   const copyBtn = document.getElementById("copyBtn")
@@ -273,10 +278,20 @@ async function promptToDelete() {
 }
 
 async function renameWorkbook(newName) {
+  const newID = `workbook-${await hash(newName)}`
+
+  if (logseq.FileStorage.hasItem(newID)) {
+    const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
+    alert(
+      lang === "zh-CN"
+        ? "相同名字的电子表格已存在，无法重命名！"
+        : "A spreadsheet with the same name already exists, failed to rename!",
+    )
+    return false
+  }
+
   await logseq.FileStorage.removeItem(idRef.current)
-
-  idRef.current = `workbook-${await hash(newName)}`
-
+  idRef.current = newID
   const block = await logseq.Editor.getBlock(uuid)
   await logseq.Editor.updateBlock(
     uuid,
@@ -287,6 +302,7 @@ async function renameWorkbook(newName) {
   )
 
   // A save will be triggered by page exit.
+  return true
 }
 
 main()
