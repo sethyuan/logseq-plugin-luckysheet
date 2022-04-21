@@ -53,19 +53,24 @@ async function renderer({ slot, payload: { arguments: args, uuid } }) {
   if (type !== ":luckysheet") return
   const workbookName = args[1].trim()
   if (!workbookName) return
-  const id = `workbook-${await hash(workbookName)}`
 
-  const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
-  logseq.provideStyle(`#${slot} { width: 100%; }`)
+  const slotEl = parent.document.getElementById(slot)
+  const renderered = slotEl.childElementCount > 0
+  if (!renderered) {
+    const id = `workbook-${await hash(workbookName)}`
+    const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
 
-  const pluginDir = getPluginDir()
-  logseq.provideUI({
-    key: "luckysheet",
-    slot,
-    template: `<iframe class="kef-sheet-iframe" src="${pluginDir}/inline.html" data-id="${id}" data-name="${workbookName}" data-uuid="${uuid}" data-frame="${logseq.baseInfo.id}_iframe"></iframe>`,
-    reset: true,
-    style: { flex: 1 },
-  })
+    slotEl.style.width = "100%"
+
+    const pluginDir = getPluginDir()
+    logseq.provideUI({
+      key: "luckysheet",
+      slot,
+      template: `<iframe class="kef-sheet-iframe" src="${pluginDir}/inline.html" data-id="${id}" data-name="${workbookName}" data-uuid="${uuid}" data-frame="${logseq.baseInfo.id}_iframe"></iframe>`,
+      reset: true,
+      style: { flex: 1 },
+    })
+  }
 }
 
 async function insertRenderer() {
