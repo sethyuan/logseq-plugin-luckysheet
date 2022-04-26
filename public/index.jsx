@@ -1,7 +1,6 @@
 import "@logseq/libs"
 import { hash } from "./utils"
 
-const INLINE_WIDTH = 660
 const INLINE_HEIGHT = 400
 
 let mainContentContainer
@@ -21,7 +20,6 @@ async function main() {
 
   logseq.provideStyle(`
     .kef-sheet-iframe {
-      flex: 0 1 ${INLINE_WIDTH}px;
       height: ${INLINE_HEIGHT}px;
       margin: 0;
     }
@@ -62,11 +60,16 @@ async function renderer({ slot, payload: { arguments: args, uuid } }) {
 
     slotEl.style.width = "100%"
 
+    const container = slotEl.closest(".block-content.inline").closest(".flex-1")
     const pluginDir = getPluginDir()
     logseq.provideUI({
       key: "luckysheet",
       slot,
-      template: `<iframe class="kef-sheet-iframe" src="${pluginDir}/inline.html" data-id="${id}" data-name="${workbookName}" data-uuid="${uuid}" data-frame="${logseq.baseInfo.id}_iframe"></iframe>`,
+      template: `<iframe class="kef-sheet-iframe" style="min-width: ${
+        container?.clientWidth ?? 450
+      }px" src="${pluginDir}/inline.html" data-id="${id}" data-name="${workbookName}" data-uuid="${uuid}" data-frame="${
+        logseq.baseInfo.id
+      }_iframe"></iframe>`,
       reset: true,
       style: { flex: 1 },
     })

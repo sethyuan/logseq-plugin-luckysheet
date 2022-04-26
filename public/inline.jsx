@@ -2,6 +2,15 @@ import { hash } from "./utils"
 
 const idRef = { current: frameElement.dataset.id }
 const { name, uuid, frame } = frameElement.dataset
+const refUuid = (() => {
+  const blockParent = frameElement.closest(
+    ".block-content.inline",
+  ).parentElement
+  if (blockParent.classList.contains("block-ref")) {
+    return blockParent.closest(".block-content.inline").getAttribute("blockid")
+  }
+  return null
+})()
 const pluginWindow = parent.document.getElementById(frame).contentWindow
 const logseq = pluginWindow.logseq
 
@@ -60,7 +69,7 @@ async function main() {
   const editBtn = document.getElementById("editBtn")
   editBtn.title = lang === "zh-CN" ? "编辑块" : "Edit block"
   editBtn.addEventListener("click", (e) => {
-    logseq.Editor.editBlock(uuid)
+    logseq.Editor.editBlock(refUuid || uuid)
   })
 
   const deleteBtn = document.getElementById("deleteBtn")
@@ -169,7 +178,7 @@ async function copyAsTSV() {
 }
 
 async function generateAndOverrideParent() {
-  const block = await logseq.Editor.getBlock(uuid)
+  const block = await logseq.Editor.getBlock(refUuid || uuid)
   if (block.parent != null && block.parent.id !== block.page.id) {
     const parent = await logseq.Editor.getBlock(block.parent.id)
     const markdown = generateMarkdown()
