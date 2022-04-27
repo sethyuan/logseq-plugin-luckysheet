@@ -20,6 +20,7 @@ async function main() {
 
   logseq.provideStyle(`
     .kef-sheet-iframe {
+      width: 100%;
       height: ${INLINE_HEIGHT}px;
       margin: 0;
     }
@@ -53,6 +54,11 @@ async function renderer({ slot, payload: { arguments: args, uuid } }) {
   if (!workbookName) return
 
   const slotEl = parent.document.getElementById(slot)
+  const blockParent = slotEl.closest(".block-content.inline").parentElement
+  if (blockParent.classList.contains("block-ref")) {
+    blockParent.style.display = "block"
+  }
+
   const renderered = slotEl.childElementCount > 0
   if (!renderered) {
     const id = `workbook-${await hash(workbookName)}`
@@ -60,16 +66,11 @@ async function renderer({ slot, payload: { arguments: args, uuid } }) {
 
     slotEl.style.width = "100%"
 
-    const container = slotEl.closest(".block-content.inline").closest(".flex-1")
     const pluginDir = getPluginDir()
     logseq.provideUI({
       key: "luckysheet",
       slot,
-      template: `<iframe class="kef-sheet-iframe" style="min-width: ${
-        container?.clientWidth ?? 450
-      }px" src="${pluginDir}/inline.html" data-id="${id}" data-name="${workbookName}" data-uuid="${uuid}" data-frame="${
-        logseq.baseInfo.id
-      }_iframe"></iframe>`,
+      template: `<iframe class="kef-sheet-iframe" src="${pluginDir}/inline.html" data-id="${id}" data-name="${workbookName}" data-uuid="${uuid}" data-frame="${logseq.baseInfo.id}_iframe"></iframe>`,
       reset: true,
       style: { flex: 1 },
     })

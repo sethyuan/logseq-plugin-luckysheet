@@ -1,5 +1,3 @@
-import { hash } from "./utils"
-
 const idRef = { current: frameElement.dataset.id }
 const { name, uuid, frame } = frameElement.dataset
 const refUuid = (() => {
@@ -25,16 +23,14 @@ async function main() {
   const title = document.getElementById("title")
   title.innerText = name
   title.title = name
-  title.addEventListener("keydown", async (e) => {
+  title.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault()
-      if (!(await renameWorkbook(title.innerText))) {
-        title.innerText = name
-      }
+      title.blur()
     }
   })
   title.addEventListener("blur", (e) => {
-    title.innerText = name
+    renameWorkbook(title.innerText)
   })
 
   const copyBtn = document.getElementById("copyBtn")
@@ -72,12 +68,6 @@ async function main() {
     logseq.Editor.editBlock(refUuid || uuid)
   })
 
-  const deleteBtn = document.getElementById("deleteBtn")
-  deleteBtn.title = lang === "zh-CN" ? "删除表格" : "Delete spreadsheet"
-  deleteBtn.addEventListener("click", (e) => {
-    promptToDelete()
-  })
-
   window.addEventListener("pagehide", (e) => {
     if (workbookReady) {
       clearTimeout(saveTimer)
@@ -85,21 +75,15 @@ async function main() {
     }
   })
 
-  const file = (await logseq.FileStorage.hasItem(idRef.current))
-    ? JSON.parse(await logseq.FileStorage.getItem(idRef.current))
-    : {
-        data: [
-          {
-            name: "Sheet1",
-            color: "",
-            status: "1",
-            order: "0",
-            data: [],
-            config: {},
-            index: 0,
-          },
-        ],
-      }
+  let data
+  try {
+    data = await read()
+  } catch (err) {
+    document.getElementById("sheet").innerHTML = "zh-CN"
+      ? '<p class="error">数据读取错误！</p>'
+      : '<p class="error">Data read error!</p>'
+    return
+  }
 
   luckysheet.create({
     container: "sheet",
@@ -114,8 +98,7 @@ async function main() {
     row: 30,
     column: 20,
     gridKey: idRef.current,
-    // compat with old files.
-    data: Array.isArray(file) ? file : file.data,
+    data: await read(),
     hook: {
       workbookCreateAfter() {
         workbookReady = true
@@ -137,6 +120,37 @@ async function main() {
       },
     },
   })
+}
+
+async function read() {
+  const firstChild = (
+    await logseq.Editor.getBlock(uuid, {
+      includeChildren: true,
+    })
+  )?.children?.[0]
+
+  if (!firstChild?.content.startsWith("```json")) {
+    const file = (await logseq.FileStorage.hasItem(idRef.current))
+      ? JSON.parse(await logseq.FileStorage.getItem(idRef.current))
+      : {
+          data: [
+            {
+              name: "Sheet1",
+              color: "",
+              status: "1",
+              order: "0",
+              data: [],
+              config: {},
+              index: 0,
+            },
+          ],
+        }
+    return Array.isArray(file) ? file : file.data
+  }
+
+  return JSON.parse(
+    firstChild.content.substring(7, firstChild.content.length - 3),
+  )
 }
 
 async function save() {
@@ -161,11 +175,18 @@ async function save() {
       }
     }
   }
-  const file = {
-    name,
-    data: sheets,
+
+  const block = await logseq.Editor.getBlock(uuid, { includeChildren: true })
+  const data = `\`\`\`json\n${JSON.stringify(sheets)}\n\`\`\``
+  if (!block.children?.length) {
+    await logseq.Editor.insertBlock(uuid, data, { sibling: false })
+  } else if (!block.children[0].content.startsWith("```json")) {
+    await logseq.Editor.insertBlock(block.children[0].uuid, data, {
+      before: true,
+    })
+  } else {
+    await logseq.Editor.updateBlock(block.children[0].uuid, data)
   }
-  await logseq.FileStorage.setItem(idRef.current, JSON.stringify(file))
 }
 
 async function copyAsTSV() {
@@ -264,43 +285,7 @@ function generateMarkdown() {
   return rows.join("\n")
 }
 
-async function promptToDelete() {
-  const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
-  const ok = parent.window.confirm(
-    lang === "zh-CN"
-      ? `你确定删除“${name}”吗？`
-      : `You sure to delete "${name}"?`,
-  )
-  if (!ok) return
-
-  clearTimeout(saveTimer)
-  await logseq.FileStorage.removeItem(idRef.current)
-  workbookReady = false
-  const block = await logseq.Editor.getBlock(uuid)
-  await logseq.Editor.updateBlock(
-    uuid,
-    block.content.replace(
-      new RegExp(`{{renderer :luckysheet,\\s*${name}\\s*}}`, "i"),
-      "",
-    ),
-  )
-}
-
 async function renameWorkbook(newName) {
-  const newID = `workbook-${await hash(newName)}`
-
-  if (logseq.FileStorage.hasItem(newID)) {
-    const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
-    alert(
-      lang === "zh-CN"
-        ? "相同名字的电子表格已存在，无法重命名！"
-        : "A spreadsheet with the same name already exists, failed to rename!",
-    )
-    return false
-  }
-
-  await logseq.FileStorage.removeItem(idRef.current)
-  idRef.current = newID
   const block = await logseq.Editor.getBlock(uuid)
   await logseq.Editor.updateBlock(
     uuid,
@@ -309,9 +294,6 @@ async function renameWorkbook(newName) {
       `{{renderer :luckysheet, ${newName}}}`,
     ),
   )
-
-  // A save will be triggered by page exit.
-  return true
 }
 
 main()
