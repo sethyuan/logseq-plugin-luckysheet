@@ -68,7 +68,7 @@ async function renderer({ slot, payload: { arguments: args, uuid } }) {
 
     const pluginDir = getPluginDir()
     logseq.provideUI({
-      key: "luckysheet",
+      key: `luckysheet-${slot}`,
       slot,
       template: `<iframe class="kef-sheet-iframe" src="${pluginDir}/inline.html" data-id="${id}" data-name="${workbookName}" data-uuid="${uuid}" data-frame="${logseq.baseInfo.id}_iframe"></iframe>`,
       reset: true,
