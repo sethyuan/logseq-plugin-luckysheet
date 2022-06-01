@@ -1,6 +1,6 @@
 {
   "name": "logseq-plugin-luckysheet",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "main": "dist/index.html",
   "logseq": {
     "id": "_sethyuan-logseq-luckysheet",
@@ -11,10 +11,12 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@logseq/libs": "^0.0.1-alpha.35"
+    "@logseq/libs": "^0.0.1-alpha.35",
+    "logseq-l10n": "^0.1.0"
   },
   "devDependencies": {
     "@rollup/plugin-html": "^0.2.4",
+    "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@swc/core": "^1.2.187",
     "rollup": "^2.74.1",

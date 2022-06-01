@@ -11,6 +11,7 @@ const refUuid = (() => {
 })()
 const pluginWindow = parent.document.getElementById(frame).contentWindow
 const logseq = pluginWindow.logseq
+const t = pluginWindow.t
 
 const SAVE_DELAY = 10_000 // 10s
 
@@ -18,8 +19,6 @@ let saveTimer
 let workbookReady = false
 
 async function main() {
-  const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
-
   const title = document.getElementById("title")
   title.innerText = name
   title.title = name
@@ -34,22 +33,19 @@ async function main() {
   })
 
   const copyBtn = document.getElementById("copyBtn")
-  copyBtn.title = lang === "zh-CN" ? "拷贝选区为TSV" : "Copy selection as TSV"
+  copyBtn.title = t("Copy selection as TSV")
   copyBtn.addEventListener("click", (e) => {
     copyAsTSV()
   })
 
   const syncBtn = document.getElementById("syncBtn")
-  syncBtn.title =
-    lang === "zh-CN"
-      ? "生成Markdown并覆写至父级块"
-      : "Generate Markdown and override parent block"
+  syncBtn.title = t("Generate Markdown and override parent block")
   syncBtn.addEventListener("click", (e) => {
     generateAndOverrideParent()
   })
 
   const fullscreenBtn = document.getElementById("fullscreenBtn")
-  fullscreenBtn.title = lang === "zh-CN" ? "全屏编辑" : "FullScreen Edit"
+  fullscreenBtn.title = t("FullScreen Edit")
   fullscreenBtn.addEventListener("click", async (e) => {
     frameElement.classList.toggle("kef-sheet-fullscreen")
     if (frameElement.classList.contains("kef-sheet-fullscreen")) {
@@ -63,13 +59,13 @@ async function main() {
   })
 
   const editBtn = document.getElementById("editBtn")
-  editBtn.title = lang === "zh-CN" ? "编辑块" : "Edit block"
+  editBtn.title = t("Edit block")
   editBtn.addEventListener("click", (e) => {
     logseq.Editor.editBlock(refUuid || uuid)
   })
 
   const deleteBtn = document.getElementById("deleteBtn")
-  deleteBtn.title = lang === "zh-CN" ? "删除表格" : "Delete spreadsheet"
+  deleteBtn.title = t("Delete spreadsheet")
   deleteBtn.addEventListener("click", (e) => {
     promptToDelete()
   })
@@ -99,7 +95,7 @@ async function main() {
     }
     luckysheet.create({
       container: "sheet",
-      lang: lang === "zh-CN" ? "zh" : "en",
+      lang: t("en"),
       plugins: ["chart"],
       enableAddRow: false,
       enableAddBackTop: false,
@@ -214,8 +210,7 @@ async function copyAsTSV() {
   const text = data.map((row) => row.join("\t")).join("\n")
   await navigator.clipboard.writeText(text)
 
-  const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
-  logseq.App.showMsg(lang === "zh-CN" ? "选区已复制" : "Selection copied")
+  logseq.App.showMsg(t("Selection copied"))
 }
 
 async function generateAndOverrideParent() {
@@ -225,12 +220,7 @@ async function generateAndOverrideParent() {
     const markdown = generateMarkdown()
     await logseq.Editor.updateBlock(parent.uuid, markdown)
   } else {
-    const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
-    logseq.App.showMsg(
-      lang === "zh-CN"
-        ? "表格需有一个父级块"
-        : "Luckysheet needs to have a parent block",
-    )
+    logseq.App.showMsg(t("Luckysheet needs to have a parent block"))
   }
 }
 
@@ -317,12 +307,7 @@ async function renameWorkbook(newName) {
 }
 
 async function promptToDelete() {
-  const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
-  const ok = parent.window.confirm(
-    lang === "zh-CN"
-      ? `你确定删除“${name}”吗？`
-      : `You sure to delete "${name}"?`,
-  )
+  const ok = parent.window.confirm(t('You sure to delete "${name}"?', { name }))
   if (!ok) return
 
   clearTimeout(saveTimer)

@@ -1,4 +1,6 @@
 import "@logseq/libs"
+import { setup, t } from "logseq-l10n"
+import zhCN from "./translations/zh-CN.json"
 import { hash } from "./utils"
 
 const INLINE_HEIGHT = 400
@@ -7,7 +9,12 @@ let mainContentContainer
 let lastScrollTop = 0
 
 async function main() {
-  const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
+  const l10nSetup = setup({
+    urlTemplate:
+      "https://raw.githubusercontent.com/sethyuan/logseq-plugin-luckysheet/master/src/translations/${locale}.json",
+    builtinTranslations: { "zh-CN": zhCN },
+  })
+
   mainContentContainer = parent.document.getElementById(
     "main-content-container",
   )
@@ -34,6 +41,8 @@ async function main() {
       z-index: var(--ls-z-index-level-3, 999);
     }
   `)
+  await l10nSetup
+  window.t = t
   logseq.App.onMacroRendererSlotted(renderer)
   logseq.Editor.registerSlashCommand("Luckysheet", insertRenderer)
 
@@ -63,7 +72,6 @@ async function renderer({ slot, payload: { arguments: args, uuid } }) {
   const renderered = slotEl.childElementCount > 0
   if (!renderered) {
     const id = `workbook-${await hash(workbookName)}`
-    const { preferredLanguage: lang } = await logseq.App.getUserConfigs()
 
     slotEl.style.width = "100%"
 

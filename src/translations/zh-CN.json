@@ -1,0 +1,11 @@
+{
+  "Copy selection as TSV": "拷贝选区为TSV",
+  "Generate Markdown and override parent block": "生成Markdown并覆写至父级块",
+  "FullScreen Edit": "全屏编辑",
+  "Edit block": "编辑块",
+  "Delete spreadsheet": "删除表格",
+  "en": "zh",
+  "Selection copied": "选区已复制",
+  "Luckysheet needs to have a parent block": "表格需有一个父级块",
+  "You sure to delete \"${name}\"?": "你确定删除“${name}”吗？"
+}
