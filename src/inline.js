@@ -13,7 +13,7 @@ const pluginWindow = parent.document.getElementById(frame).contentWindow
 const logseq = pluginWindow.logseq
 const t = pluginWindow.t
 
-const SAVE_DELAY = 1_000 // 1s
+const SAVE_DELAY = 2_000 // 2s
 
 let saveTimer
 let workbookReady = false
