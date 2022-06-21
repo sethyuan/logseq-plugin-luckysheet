@@ -254,19 +254,32 @@ function generateMarkdown() {
     const row = new Array(colEnd - colStart)
 
     for (let j = colStart; j < colEnd; j++) {
-      if (data[i][j]?.m != null || data[i][j]?.ct?.t === "inlineStr") {
+      const cell = data[i][j]
+      if (cell?.m != null || cell?.ct?.t === "inlineStr") {
         row[j - colStart] =
-          data[i][j]?.m ??
-          data[i][j]?.ct.s
-            .map(
-              ({ bl, it, cl, v }) =>
-                `${bl ? "**" : ""}${cl ? "~~" : ""}${it ? "_" : ""}${v}${
-                  it ? "_" : ""
-                }${cl ? "~~" : ""}${bl ? "**" : ""}`,
-            )
-            .join("")
-            .trim()
-            .replaceAll("\r\n", " [:br]")
+          cell?.m != null
+            ? `${cell.bl ? "**" : ""}${cell.cl ? "~~" : ""}${
+                cell.it ? "_" : ""
+              }${cell.m}${cell.it ? "_" : ""}${cell.cl ? "~~" : ""}${
+                cell.bl ? "**" : ""
+              }`
+            : cell?.ct.s
+                .map(({ bl, it, cl, v }) => {
+                  const lines = v.split("\r\n")
+                  console.log(v, lines)
+                  return lines
+                    .map(
+                      (line) =>
+                        `${bl ? "**" : ""}${cl ? "~~" : ""}${
+                          it ? "_" : ""
+                        }${line}${it ? "_" : ""}${cl ? "~~" : ""}${
+                          bl ? "**" : ""
+                        }`,
+                    )
+                    .join(" [:br]")
+                })
+                .join("")
+                .trim()
       }
     }
 
