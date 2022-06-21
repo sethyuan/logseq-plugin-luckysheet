@@ -266,7 +266,7 @@ function generateMarkdown() {
             )
             .join("")
             .trim()
-            .replaceAll("\r\n", " <br />")
+            .replaceAll("\r\n", " [:br]")
       }
     }
 
