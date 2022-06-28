@@ -7,5 +7,6 @@
   "en": "zh",
   "Selection copied": "选区已复制",
   "Luckysheet needs to have a parent block": "表格需有一个父级块",
-  "You sure to delete \"${name}\"?": "你确定删除“${name}”吗？"
+  "You sure to delete \"${name}\"?": "你确定删除“${name}”吗？",
+  "Data read error!": "数据读取错误！"
 }

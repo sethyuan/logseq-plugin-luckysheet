@@ -1,6 +1,6 @@
 {
   "name": "logseq-plugin-luckysheet",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "main": "dist/index.html",
   "logseq": {
     "id": "_sethyuan-logseq-luckysheet",

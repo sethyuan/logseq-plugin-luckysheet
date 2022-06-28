@@ -129,9 +129,9 @@ async function main() {
       },
     })
   } catch (err) {
-    document.getElementById("sheet").innerHTML = "zh-CN"
-      ? '<p class="error">数据读取错误！</p>'
-      : '<p class="error">Data read error!</p>'
+    document.getElementById("sheet").innerHTML = `<p class="error">${t(
+      "Data read error!",
+    )}</p>`
   }
 }
 
@@ -163,7 +163,9 @@ async function read() {
 
   return [
     false,
-    JSON.parse(firstChild.content.substring(7, firstChild.content.length - 3)),
+    JSON.parse(
+      firstChild.content.substring(7, firstChild.content.lastIndexOf("]") + 1),
+    ),
   ]
 }
 
