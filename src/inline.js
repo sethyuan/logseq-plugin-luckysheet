@@ -1,3 +1,5 @@
+import { range } from "./utils"
+
 const idRef = { current: frameElement.dataset.id }
 const { name, uuid, frame } = frameElement.dataset
 const refUuid = (() => {
@@ -228,19 +230,17 @@ async function generateAndOverrideParent() {
 
 function generateMarkdown() {
   const data = luckysheet.getSheetData()
+  const rowLength = data.length
+  const columnLength = data[0].length
 
-  let rowStart = 0
-  let colStart = 0
-  let colEnd = 0
-  loop: for (let i = 0; i < data.length; i++) {
-    for (let j = 0; j < data[i].length; j++) {
-      if (data[i][j]?.m != null || data[i][j]?.ct?.t === "inlineStr") {
-        rowStart = i
-        colStart = j
-        break loop
-      }
+  let rowStart = Math.max(0, data.findIndex((row) => row.some((cell) => cell != null)))
+  let colStart = Math.max(0, range(columnLength).findIndex((c) => {
+    for (let r = 0; r < rowLength; r++) {
+      if (data[r][c] != null) return true
     }
-  }
+    return false
+  }))
+  let colEnd = 0
   for (let i = colStart + 1; i < data[rowStart].length; i++) {
     if (
       data[rowStart][i]?.m == null &&
@@ -268,7 +268,6 @@ function generateMarkdown() {
             : cell?.ct.s
                 .map(({ bl, it, cl, v }) => {
                   const lines = v.split("\r\n")
-                  console.log(v, lines)
                   return lines
                     .map(
                       (line) =>
@@ -293,7 +292,7 @@ function generateMarkdown() {
       rows.push(
         `| ${row
           .map((_, j) => {
-            switch (data[i][j].ht) {
+            switch (data[i][j]?.ht) {
               case "0":
                 return ":---:"
               case "2":
