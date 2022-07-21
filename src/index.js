@@ -64,8 +64,8 @@ async function renderer({ slot, payload: { arguments: args, uuid } }) {
 
   const slotEl = parent.document.getElementById(slot)
   if (!slotEl) return
-  const blockParent = slotEl.closest(".block-content.inline").parentElement
-  if (blockParent.classList.contains("block-ref")) {
+  const blockParent = slotEl.closest(".block-content.inline")?.parentElement
+  if (blockParent?.classList.contains("block-ref")) {
     blockParent.style.display = "block"
   }
 
