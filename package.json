@@ -1,18 +1,19 @@
 {
   "name": "logseq-plugin-luckysheet",
-  "version": "0.7.7",
+  "version": "0.8.0",
   "main": "dist/index.html",
   "logseq": {
     "id": "_sethyuan-logseq-luckysheet",
     "icon": "./icon.png"
   },
   "scripts": {
-    "build": "rollup -c && cp -r expendPlugins dist/",
+    "build": "rollup -c && cp -r node_modules/luckysheet/dist/assets node_modules/luckysheet/dist/css node_modules/luckysheet/dist/expendPlugins node_modules/luckysheet/dist/fonts node_modules/luckysheet/dist/plugins node_modules/luckysheet/dist/luckysheet.umd.* dist/",
     "clean": "rm -rf dist"
   },
   "dependencies": {
     "@logseq/libs": "^0.0.1-alpha.35",
-    "logseq-l10n": "^0.1.0"
+    "logseq-l10n": "^0.1.0",
+    "luckysheet": "^2.1.13"
   },
   "devDependencies": {
     "@rollup/plugin-html": "^0.2.4",
