@@ -16,6 +16,7 @@ const logseq = pluginWindow.logseq
 const t = pluginWindow.t
 
 const SAVE_DELAY = 2_000 // 2s
+const TOOLBAR_HEIGHT = 48
 
 let saveTimer
 let workbookReady = false
@@ -46,16 +47,35 @@ async function main() {
     generateAndOverrideParent()
   })
 
+  const resizeObserver = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      const rect = entry.target.getBoundingClientRect()
+      frameElement.style.top = `${rect.top - TOOLBAR_HEIGHT}px`
+      frameElement.style.left = `${rect.left}px`
+      frameElement.style.width = `${rect.width}px`
+      frameElement.style.height = `${rect.height + TOOLBAR_HEIGHT}px`
+    }
+  })
+
   const fullscreenBtn = document.getElementById("fullscreenBtn")
   fullscreenBtn.title = t("FullScreen Edit")
   fullscreenBtn.addEventListener("click", async (e) => {
+    const container = frameElement.closest(
+      "#main-content-container, .sidebar-item-list",
+    )
     frameElement.classList.toggle("kef-sheet-fullscreen")
     if (frameElement.classList.contains("kef-sheet-fullscreen")) {
       if (parent.document.documentElement.classList.contains("is-mac")) {
         document.documentElement.classList.add("fullscreen-mac")
       }
+      resizeObserver.observe(container)
       document.querySelector(".luckysheet-cell-input.editable")?.focus()
     } else {
+      resizeObserver.unobserve(container)
+      frameElement.style.top = ""
+      frameElement.style.left = ""
+      frameElement.style.width = ""
+      frameElement.style.height = ""
       document.documentElement.classList.remove("fullscreen-mac")
     }
   })
@@ -77,6 +97,7 @@ async function main() {
       clearTimeout(saveTimer)
       save()
     }
+    resizeObserver.disconnect()
   })
 
   try {
@@ -233,13 +254,19 @@ function generateMarkdown() {
   const rowLength = data.length
   const columnLength = data[0].length
 
-  let rowStart = Math.max(0, data.findIndex((row) => row.some((cell) => cell != null)))
-  let colStart = Math.max(0, range(columnLength).findIndex((c) => {
-    for (let r = 0; r < rowLength; r++) {
-      if (data[r][c] != null) return true
-    }
-    return false
-  }))
+  let rowStart = Math.max(
+    0,
+    data.findIndex((row) => row.some((cell) => cell != null)),
+  )
+  let colStart = Math.max(
+    0,
+    range(columnLength).findIndex((c) => {
+      for (let r = 0; r < rowLength; r++) {
+        if (data[r][c] != null) return true
+      }
+      return false
+    }),
+  )
   let colEnd = 0
   for (let i = colStart + 1; i < data[rowStart].length; i++) {
     if (
