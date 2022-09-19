@@ -18,3 +18,9 @@ export function range(n) {
   }
   return arr
 }
+
+export const UUIDS = "kef-luckysheet-uuids"
+
+export function bufferKey(uuid) {
+  return `kef-luckysheet-${uuid}`
+}

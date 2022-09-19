@@ -1,4 +1,4 @@
-import { range } from "./utils"
+import { bufferKey, range, UUIDS } from "./utils"
 
 const idRef = { current: frameElement.dataset.id }
 const { name, uuid, frame } = frameElement.dataset
@@ -15,7 +15,7 @@ const pluginWindow = parent.document.getElementById(frame).contentWindow
 const logseq = pluginWindow.logseq
 const t = pluginWindow.t
 
-const SAVE_DELAY = 2_000 // 2s
+const SAVE_DELAY = 3_000 // 3s
 const TOOLBAR_HEIGHT = 48
 
 let saveTimer
@@ -159,6 +159,14 @@ async function main() {
 }
 
 async function read() {
+  const bufferedData = localStorage.getItem(bufferKey(uuid))
+  if (bufferedData) {
+    return [
+      false,
+      JSON.parse(bufferedData.substring(7, bufferedData.lastIndexOf("]") + 1)),
+    ]
+  }
+
   const firstChild = (
     await logseq.Editor.getBlock(uuid, {
       includeChildren: true,
@@ -216,18 +224,8 @@ async function save() {
   }
 
   const data = `\`\`\`json\n${JSON.stringify(sheets)}\n\`\`\``
-  const block = await logseq.Editor.getBlock(uuid, { includeChildren: true })
-  if (!block.children?.length) {
-    await logseq.Editor.insertBlock(uuid, data, { sibling: false })
-    await logseq.Editor.setBlockCollapsed(uuid, true)
-  } else if (!block.children[0].content.startsWith("```json")) {
-    await logseq.Editor.insertBlock(block.children[0].uuid, data, {
-      before: true,
-    })
-    await logseq.Editor.setBlockCollapsed(uuid, true)
-  } else {
-    await logseq.Editor.updateBlock(block.children[0].uuid, data)
-  }
+  localStorage.setItem(bufferKey(uuid), data)
+  localStorage.setItem(UUIDS, `${localStorage.getItem(UUIDS) ?? ""}${uuid},`)
 }
 
 async function copyAsTSV() {

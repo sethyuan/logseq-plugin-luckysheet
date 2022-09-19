@@ -1,7 +1,7 @@
 import "@logseq/libs"
 import { setup, t } from "logseq-l10n"
 import zhCN from "./translations/zh-CN.json"
-import { hash } from "./utils"
+import { bufferKey, hash, UUIDS } from "./utils"
 
 const INLINE_HEIGHT = 400
 
@@ -51,6 +51,9 @@ async function main() {
       passive: true,
     })
   })
+
+  // Save buffered files
+  await saveBufferedFiles()
 
   console.log("#luckysheet loaded")
 }
@@ -110,6 +113,33 @@ function scrollHandler(e) {
   } else {
     lastScrollTop = mainContentContainer.scrollTop
   }
+}
+
+async function saveBufferedFiles() {
+  const uuids = (localStorage.getItem(UUIDS) ?? "")
+    .split(",")
+    .filter((x) => !!x)
+  for (const uuid of uuids) {
+    const key = bufferKey(uuid)
+    const data = localStorage.getItem(key)
+    if (!data) continue
+
+    const block = await logseq.Editor.getBlock(uuid, { includeChildren: true })
+    if (!block.children?.length) {
+      await logseq.Editor.insertBlock(uuid, data, { sibling: false })
+      await logseq.Editor.setBlockCollapsed(uuid, true)
+    } else if (!block.children[0].content.startsWith("```json")) {
+      await logseq.Editor.insertBlock(block.children[0].uuid, data, {
+        before: true,
+      })
+      await logseq.Editor.setBlockCollapsed(uuid, true)
+    } else {
+      await logseq.Editor.updateBlock(block.children[0].uuid, data)
+    }
+
+    localStorage.removeItem(key)
+  }
+  localStorage.setItem(UUIDS, "")
 }
 
 logseq.ready(main).catch(console.error)
