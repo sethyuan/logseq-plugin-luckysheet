@@ -122,9 +122,12 @@ async function saveBufferedFiles() {
   for (const uuid of uuids) {
     const key = bufferKey(uuid)
     const data = localStorage.getItem(key)
-    if (!data) continue
+    localStorage.removeItem(key)
 
+    if (!data) continue
     const block = await logseq.Editor.getBlock(uuid, { includeChildren: true })
+    if (block == null) continue
+
     if (!block.children?.length) {
       await logseq.Editor.insertBlock(uuid, data, { sibling: false })
       await logseq.Editor.setBlockCollapsed(uuid, true)
@@ -136,8 +139,6 @@ async function saveBufferedFiles() {
     } else {
       await logseq.Editor.updateBlock(block.children[0].uuid, data)
     }
-
-    localStorage.removeItem(key)
   }
   localStorage.setItem(UUIDS, "")
 }
