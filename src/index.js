@@ -20,6 +20,7 @@ async function main() {
   )
 
   window.logseq = logseq
+  window.saveBufferedFiles = saveBufferedFiles
   window.justFocused = false
   mainContentContainer.addEventListener("scroll", scrollHandler, {
     passive: true,

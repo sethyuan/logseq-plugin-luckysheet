@@ -12,8 +12,7 @@ const refUuid = (() => {
   return null
 })()
 const pluginWindow = parent.document.getElementById(frame).contentWindow
-const logseq = pluginWindow.logseq
-const t = pluginWindow.t
+const { logseq, t, saveBufferedFiles } = pluginWindow
 
 const SAVE_DELAY = 3_000 // 3s
 const TOOLBAR_HEIGHT = 48
@@ -78,6 +77,14 @@ async function main() {
       frameElement.style.height = ""
       document.documentElement.classList.remove("fullscreen-mac")
     }
+  })
+
+  const saveBtn = document.getElementById("saveBtn")
+  saveBtn.title = t("Save")
+  saveBtn.addEventListener("click", async (e) => {
+    await save()
+    await saveBufferedFiles()
+    logseq.UI.showMsg(t('"${name}" saved.', { name }))
   })
 
   const editBtn = document.getElementById("editBtn")
@@ -233,7 +240,7 @@ async function copyAsTSV() {
   const text = data.map((row) => row.join("\t")).join("\n")
   await navigator.clipboard.writeText(text)
 
-  logseq.App.showMsg(t("Selection copied"))
+  logseq.UI.showMsg(t("Selection copied"))
 }
 
 async function generateAndOverrideParent() {
@@ -243,7 +250,7 @@ async function generateAndOverrideParent() {
     const markdown = generateMarkdown()
     await logseq.Editor.updateBlock(parent.uuid, markdown)
   } else {
-    logseq.App.showMsg(t("Luckysheet needs to have a parent block"))
+    logseq.UI.showMsg(t("Luckysheet needs to have a parent block"))
   }
 }
 
