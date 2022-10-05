@@ -9,11 +9,7 @@ let mainContentContainer
 let lastScrollTop = 0
 
 async function main() {
-  const l10nSetup = setup({
-    urlTemplate:
-      "https://raw.githubusercontent.com/sethyuan/logseq-plugin-luckysheet/master/src/translations/${locale}.json",
-    builtinTranslations: { "zh-CN": zhCN },
-  })
+  await setup({ builtinTranslations: { "zh-CN": zhCN } })
 
   mainContentContainer = parent.document.getElementById(
     "main-content-container",
@@ -42,7 +38,6 @@ async function main() {
       z-index: var(--ls-z-index-level-3, 999);
     }
   `)
-  await l10nSetup
   window.t = t
   logseq.App.onMacroRendererSlotted(renderer)
   logseq.Editor.registerSlashCommand("Luckysheet", insertRenderer)
