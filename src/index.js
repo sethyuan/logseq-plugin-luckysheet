@@ -1,7 +1,7 @@
 import "@logseq/libs"
 import { setup, t } from "logseq-l10n"
 import zhCN from "./translations/zh-CN.json"
-import { bufferKey, hash, UUIDS } from "./utils"
+import { bufferKey, encodeName, UUIDS } from "./utils"
 
 const INLINE_HEIGHT = 400
 
@@ -16,7 +16,6 @@ async function main() {
   )
 
   window.logseq = logseq
-  window.saveBufferedFiles = saveBufferedFiles
   window.justFocused = false
   mainContentContainer.addEventListener("scroll", scrollHandler, {
     passive: true,
@@ -48,7 +47,7 @@ async function main() {
     })
   })
 
-  // Save buffered files
+  // NOTE: Remove after 2 versions.
   await saveBufferedFiles()
 
   console.log("#luckysheet loaded")
@@ -70,15 +69,13 @@ async function renderer({ slot, payload: { arguments: args, uuid } }) {
 
   const renderered = slotEl.childElementCount > 0
   if (!renderered) {
-    const id = `workbook-${await hash(workbookName)}`
-
     slotEl.style.width = "100%"
 
     const pluginDir = getPluginDir()
     logseq.provideUI({
       key: `luckysheet-${slot}`,
       slot,
-      template: `<iframe class="kef-sheet-iframe" src="${pluginDir}/inline.html" data-id="${id}" data-name="${workbookName}" data-uuid="${uuid}" data-frame="${logseq.baseInfo.id}_iframe"></iframe>`,
+      template: `<iframe class="kef-sheet-iframe" src="${pluginDir}/inline.html" data-name="${workbookName}" data-uuid="${uuid}" data-frame="${logseq.baseInfo.id}_iframe"></iframe>`,
       reset: true,
       style: { flex: 1 },
     })
@@ -86,7 +83,7 @@ async function renderer({ slot, payload: { arguments: args, uuid } }) {
 }
 
 async function insertRenderer() {
-  const workbookName = `workbook-${Date.now()}`
+  const workbookName = encodeName("workbook")
   await logseq.Editor.insertAtEditingCursor(
     `{{renderer :luckysheet, ${workbookName}}}`,
   )
@@ -111,6 +108,7 @@ function scrollHandler(e) {
   }
 }
 
+// NOTE: Remove after 2 versions.
 async function saveBufferedFiles() {
   const uuids = (localStorage.getItem(UUIDS) ?? "")
     .split(",")
@@ -121,6 +119,7 @@ async function saveBufferedFiles() {
     localStorage.removeItem(key)
 
     if (!data) continue
+
     const block = await logseq.Editor.getBlock(uuid, { includeChildren: true })
     if (block == null) continue
 
@@ -136,7 +135,7 @@ async function saveBufferedFiles() {
       await logseq.Editor.updateBlock(block.children[0].uuid, data)
     }
   }
-  localStorage.setItem(UUIDS, "")
+  localStorage.removeItem(UUIDS)
 }
 
 logseq.ready(main).catch(console.error)

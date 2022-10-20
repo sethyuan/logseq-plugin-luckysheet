@@ -9,10 +9,10 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@logseq/libs@^0.0.9":
-  version "0.0.9"
-  resolved "https://registry.npmmirror.com/@logseq/libs/-/libs-0.0.9.tgz#c1313de0ba2e63630bf08fa516fd32f7ef735f69"
-  integrity sha512-cNqjZxJ2+JB/C+BjtQhUMQV2/223cqpx3+WnFS9RFDUUAhNq0jvT8pukqeYyDaPu7vV1lJRWtn76/8f/ThYuYg==
+"@logseq/libs@^0.0.10":
+  version "0.0.10"
+  resolved "https://registry.npmmirror.com/@logseq/libs/-/libs-0.0.10.tgz#305d65b733ed16d157f57a1a0759e0233d1b1a81"
+  integrity sha512-Ah5wAhLcgrlOtk/9nEe11UsqOzvpcEaEWDV+oFD3TIGTeP4mfv2HjDiPYPBGXuMZRgvsW6klQLzzaxMieksXXg==
   dependencies:
     csstype "3.1.0"
     debug "4.3.4"

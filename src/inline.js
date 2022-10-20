@@ -1,7 +1,7 @@
-import { bufferKey, range, UUIDS } from "./utils"
+import { bufferKey, decodeName, encodeName, range } from "./utils"
 
-const idRef = { current: frameElement.dataset.id }
 const { name, uuid, frame } = frameElement.dataset
+const displayName = decodeName(name)
 const refUuid = (() => {
   const blockParent = frameElement.closest(
     ".block-content.inline",
@@ -12,9 +12,10 @@ const refUuid = (() => {
   return null
 })()
 const pluginWindow = parent.document.getElementById(frame).contentWindow
-const { logseq, t, saveBufferedFiles } = pluginWindow
+const { logseq, t } = pluginWindow
+const storage = logseq.Assets.makeSandboxStorage()
 
-const SAVE_DELAY = 3_000 // 3s
+const SAVE_DELAY = 30_000 // 30s
 const TOOLBAR_HEIGHT = 48
 
 let saveTimer
@@ -22,8 +23,8 @@ let workbookReady = false
 
 async function main() {
   const title = document.getElementById("title")
-  title.innerText = name
-  title.title = name
+  title.innerText = displayName
+  title.title = displayName
   title.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault()
@@ -83,8 +84,7 @@ async function main() {
   saveBtn.title = t("Save")
   saveBtn.addEventListener("click", async (e) => {
     await save()
-    await saveBufferedFiles()
-    logseq.UI.showMsg(t('"${name}" saved.', { name }))
+    logseq.UI.showMsg(t('"${name}" saved.', { name: displayName }))
   })
 
   const editBtn = document.getElementById("editBtn")
@@ -109,20 +109,6 @@ async function main() {
 
   try {
     const [justCreated, data] = await read()
-    if (justCreated) {
-      const dataBlock = await logseq.Editor.insertBlock(
-        uuid,
-        `\`\`\`json\n${JSON.stringify(data)}\n\`\`\``,
-        { sibling: false },
-      )
-      // HACK: need to wait a cycle for exit editing to work.
-      // Posterior block updates will fail if editing mode is not
-      // exited first.
-      setTimeout(async () => {
-        await logseq.Editor.exitEditingMode()
-        await logseq.Editor.setBlockCollapsed(uuid, true)
-      }, 0)
-    }
     luckysheet.create({
       container: "sheet",
       lang: t("en"),
@@ -135,7 +121,7 @@ async function main() {
       },
       row: 30,
       column: 20,
-      gridKey: idRef.current,
+      gridKey: name,
       data,
       hook: {
         workbookCreateAfter() {
@@ -151,6 +137,10 @@ async function main() {
           })
 
           luckysheet.setRangeShow("A1", { show: false })
+
+          if (justCreated) {
+            save()
+          }
         },
         updated(op) {
           clearTimeout(saveTimer)
@@ -159,6 +149,7 @@ async function main() {
       },
     })
   } catch (err) {
+    console.error(err)
     document.getElementById("sheet").innerHTML = `<p class="error">${t(
       "Data read error!",
     )}</p>`
@@ -166,6 +157,16 @@ async function main() {
 }
 
 async function read() {
+  try {
+    const data = await storage.getItem(name)
+    if (data) {
+      return [false, JSON.parse(data)]
+    }
+  } catch (err) {
+    // no file
+  }
+
+  // NOTE: Remove after 2 versions.
   const bufferedData = localStorage.getItem(bufferKey(uuid))
   if (bufferedData) {
     return [
@@ -174,40 +175,39 @@ async function read() {
     ]
   }
 
+  // NOTE: Remove after 2 versions.
   const firstChild = (
     await logseq.Editor.getBlock(uuid, {
       includeChildren: true,
     })
   )?.children?.[0]
-
-  if (!firstChild?.content.startsWith("```json")) {
-    const file = (await logseq.FileStorage.hasItem(idRef.current))
-      ? JSON.parse(await logseq.FileStorage.getItem(idRef.current))
-      : {
-          data: [
-            {
-              name: "Sheet1",
-              color: "",
-              status: "1",
-              order: "0",
-              data: [],
-              config: {},
-              index: 0,
-            },
-          ],
-        }
-    return [true, Array.isArray(file) ? file : file.data]
+  if (firstChild?.content.startsWith("```json")) {
+    return [
+      false,
+      JSON.parse(
+        firstChild.content.substring(
+          7,
+          firstChild.content.lastIndexOf("]") + 1,
+        ),
+      ),
+    ]
   }
 
-  return [
-    false,
-    JSON.parse(
-      firstChild.content.substring(7, firstChild.content.lastIndexOf("]") + 1),
-    ),
+  const file = [
+    {
+      name: "Sheet1",
+      color: "",
+      status: "1",
+      order: "0",
+      data: [],
+      config: {},
+      index: 0,
+    },
   ]
+  return [true, file]
 }
 
-async function save() {
+async function save(newName) {
   const sheets = luckysheet.getAllSheets()
   for (const sheet of sheets) {
     // Do not save selections.
@@ -229,10 +229,29 @@ async function save() {
       }
     }
   }
+  const data = JSON.stringify(sheets)
 
-  const data = `\`\`\`json\n${JSON.stringify(sheets)}\n\`\`\``
-  localStorage.setItem(bufferKey(uuid), data)
-  localStorage.setItem(UUIDS, `${localStorage.getItem(UUIDS) ?? ""}${uuid},`)
+  // NOTE: Remove after 2 versions.
+  const block = await logseq.Editor.getBlock(uuid, { includeChildren: true })
+  if (block.children?.[0]?.content.startsWith("```json")) {
+    await logseq.Editor.removeBlock(block.children[0].uuid)
+    const encodedName = encodeName(name)
+    await storage.setItem(newName ?? encodedName, data)
+    if (!newName) {
+      workbookReady = false
+      await logseq.Editor.updateBlock(
+        uuid,
+        block.content.replace(
+          /{{renderer :luckysheet,[^}]+}}/i,
+          `{{renderer :luckysheet, ${encodedName}}}`,
+        ),
+      )
+      await logseq.Editor.setBlockCollapsed(uuid, false)
+    }
+    return
+  }
+
+  await storage.setItem(newName ?? name, data)
 }
 
 async function copyAsTSV() {
@@ -342,29 +361,34 @@ function generateMarkdown() {
 }
 
 async function renameWorkbook(newName) {
+  newName = encodeName(newName)
+
+  // TODO: Prompt for existing file?
+
+  await save(newName)
+  await storage.removeItem(name)
+
+  workbookReady = false
   const block = await logseq.Editor.getBlock(uuid)
   await logseq.Editor.updateBlock(
     uuid,
     block.content.replace(
-      new RegExp(`{{renderer :luckysheet,\\s*${name}\\s*}}`, "i"),
+      /{{renderer :luckysheet,[^}]+}}/i,
       `{{renderer :luckysheet, ${newName}}}`,
     ),
   )
 }
 
 async function promptToDelete() {
-  const ok = parent.window.confirm(t('You sure to delete "${name}"?', { name }))
+  const ok = parent.window.confirm(
+    t('You sure to delete "${name}"?', { name: displayName }),
+  )
   if (!ok) return
 
   clearTimeout(saveTimer)
-  const block = await logseq.Editor.getBlock(uuid, { includeChildren: true })
-  if ((block.children?.length ?? 0) <= 1) {
-    await logseq.Editor.removeBlock(uuid)
-  } else if (block.children[0].content.startsWith("```json")) {
-    await logseq.Editor.updateBlock(uuid, "")
-    await logseq.Editor.removeBlock(block.children[0].uuid)
-  }
   workbookReady = false
+  await storage.removeItem(name)
+  await logseq.Editor.removeBlock(uuid)
 }
 
 main()
