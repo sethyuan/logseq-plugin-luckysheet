@@ -363,8 +363,6 @@ function generateMarkdown() {
 async function renameWorkbook(newName) {
   newName = encodeName(newName)
 
-  // TODO: Prompt for existing file?
-
   await save(newName)
   await storage.removeItem(name)
 
