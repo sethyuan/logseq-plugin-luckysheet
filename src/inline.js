@@ -113,8 +113,8 @@ async function main() {
       container: "sheet",
       lang: t("en"),
       plugins: ["chart"],
-      enableAddRow: false,
-      enableAddBackTop: false,
+      enableAddRow: true,
+      enableAddBackTop: true,
       showinfobar: false,
       showtoolbarConfig: {
         print: false,
@@ -136,7 +136,7 @@ async function main() {
             pluginWindow.justFocused = true
           })
 
-          luckysheet.setRangeShow("A1", { show: false })
+          luckysheet.scroll({ scrollTop: 0 })
 
           if (justCreated) {
             save()
