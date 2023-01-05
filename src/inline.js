@@ -1,4 +1,4 @@
-import { bufferKey, decodeName, encodeName, range } from "./utils"
+import { decodeName, encodeName, range } from "./utils"
 
 const { name, uuid, frame } = frameElement.dataset
 const displayName = decodeName(name)
@@ -166,33 +166,6 @@ async function read() {
     // no file
   }
 
-  // NOTE: Remove after 2 versions.
-  const bufferedData = localStorage.getItem(bufferKey(uuid))
-  if (bufferedData) {
-    return [
-      false,
-      JSON.parse(bufferedData.substring(7, bufferedData.lastIndexOf("]") + 1)),
-    ]
-  }
-
-  // NOTE: Remove after 2 versions.
-  const firstChild = (
-    await logseq.Editor.getBlock(uuid, {
-      includeChildren: true,
-    })
-  )?.children?.[0]
-  if (firstChild?.content.startsWith("```json")) {
-    return [
-      false,
-      JSON.parse(
-        firstChild.content.substring(
-          7,
-          firstChild.content.lastIndexOf("]") + 1,
-        ),
-      ),
-    ]
-  }
-
   const file = [
     {
       name: "Sheet1",
@@ -230,27 +203,6 @@ async function save(newName) {
     }
   }
   const data = JSON.stringify(sheets)
-
-  // NOTE: Remove after 2 versions.
-  const block = await logseq.Editor.getBlock(uuid, { includeChildren: true })
-  if (block.children?.[0]?.content.startsWith("```json")) {
-    await logseq.Editor.removeBlock(block.children[0].uuid)
-    const encodedName = encodeName(name)
-    await storage.setItem(newName ?? encodedName, data)
-    if (!newName) {
-      workbookReady = false
-      await logseq.Editor.updateBlock(
-        uuid,
-        block.content.replace(
-          /{{renderer :luckysheet,[^}]+}}/i,
-          `{{renderer :luckysheet, ${encodedName}}}`,
-        ),
-      )
-      await logseq.Editor.setBlockCollapsed(uuid, false)
-    }
-    return
-  }
-
   await storage.setItem(newName ?? name, data)
 }
 
@@ -375,6 +327,7 @@ async function renameWorkbook(newName) {
       `{{renderer :luckysheet, ${newName}}}`,
     ),
   )
+  await logseq.Editor.editBlock(uuid)
 }
 
 async function promptToDelete() {
